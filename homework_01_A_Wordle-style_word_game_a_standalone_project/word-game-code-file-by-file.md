@@ -1,6 +1,6 @@
 # Word Game — Code File by File with Explanations
 
-This guide uses the actual source code from the supplied `word-game-homework1.zip`. Each section explains the purpose of a file and then includes its complete contents. Keep this guide open beside VS Code while studying.
+ Each section in this guide explains the purpose of a file and then includes its complete contents. Keep this guide open beside VS Code while studying.
 
 > **Security:** `.env.example` is only a template. Put real database credentials in your local `.env` and never commit that file.
 
