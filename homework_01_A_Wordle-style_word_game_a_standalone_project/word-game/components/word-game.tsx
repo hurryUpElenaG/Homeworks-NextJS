@@ -154,9 +154,12 @@ export function WordGame({ puzzleId, nextPuzzleId }: Props) {
       )}
 
       {status !== "playing" && nextPuzzleId !== null && (
-        <Button className="w-full" onClick={() => { window.location.href = `/puzzle/${nextPuzzleId}`; }}>
+        <Link
+          href={`/puzzle/${nextPuzzleId}`}
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+        >
           Play puzzle #{nextPuzzleId}
-        </Button>
+        </Link>
       )}
 
       {status !== "playing" && nextPuzzleId === null && (
