@@ -11,12 +11,36 @@ if (!connectionString) {
 }
 
 const words = [
-  "apple", "brave", "crane", "drift", "eagle",
-  "flame", "grape", "house", "input", "jelly",
-  "knife", "lemon", "magic", "night", "ocean",
-  "piano", "queen", "river", "stone", "tiger",
-  "uncle", "video", "water", "young", "zebra",
-  "bread", "chair", "dream", "earth", "field",
+  "apple",
+  "brave",
+  "crane",
+  "drift",
+  "eagle",
+  "flame",
+  "grape",
+  "house",
+  "input",
+  "jelly",
+  "knife",
+  "lemon",
+  "magic",
+  "night",
+  "ocean",
+  "piano",
+  "queen",
+  "river",
+  "stone",
+  "tiger",
+  "uncle",
+  "video",
+  "water",
+  "young",
+  "zebra",
+  "bread",
+  "chair",
+  "dream",
+  "earth",
+  "field",
 ] as const;
 
 async function seed() {
@@ -27,7 +51,9 @@ async function seed() {
       .insert(puzzles)
       .values(words.map((answer, index) => ({ id: index + 1, answer })))
       .onConflictDoNothing({ target: puzzles.id });
-    process.stdout.write(`Seed complete: checked ${words.length} puzzle records.\n`);
+    process.stdout.write(
+      `Seed complete: checked ${words.length} puzzle records.\n`,
+    );
   } finally {
     await pool.end();
   }

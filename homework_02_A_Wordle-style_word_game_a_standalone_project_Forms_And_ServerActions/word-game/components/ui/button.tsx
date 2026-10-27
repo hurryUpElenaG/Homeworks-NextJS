@@ -5,7 +5,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "default" | "outline" | "ghost";
 };
 
-export function Button({ className, variant = "default", ...props }: ButtonProps) {
+export function Button({
+  className,
+  variant = "default",
+  ...props
+}: ButtonProps) {
   const variants = {
     default: "bg-primary text-primary-foreground hover:opacity-90",
     outline: "border border-input bg-background hover:bg-accent",

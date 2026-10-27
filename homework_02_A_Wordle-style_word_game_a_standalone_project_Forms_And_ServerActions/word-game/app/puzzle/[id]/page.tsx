@@ -1,33 +1,75 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { WordGame } from "@/components/word-game";
-import { getNextPuzzleId, getPuzzleById } from "@/db/queries";
+import { getPublishedPuzzle } from "@/db/queries";
+import { getPuzzleLeaderboard } from "@/db/queries";
 import { puzzleIdSchema } from "@/lib/validation";
+import { startGame } from "@/app/actions/game";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
-type PageProps = {
-  params: Promise<{ id: string }>;
-};
+export default async function PuzzlePage({params}: {params: Promise<{ id: string }>}) {
 
-export default async function PuzzlePage({ params }: PageProps) {
   const { id } = await params;
-  const parsedId = puzzleIdSchema.safeParse(id);
-  if (!parsedId.success) notFound();
+  const parsed = puzzleIdSchema.safeParse(id);
 
-  const puzzle = await getPuzzleById(parsedId.data);
+  if (!parsed.success) notFound();
+  const puzzle = await getPublishedPuzzle(parsed.data);
+
   if (!puzzle) notFound();
-
-  const nextPuzzleId = await getNextPuzzleId(puzzle.id);
+  const leaderboard = await getPuzzleLeaderboard(puzzle.id);
 
   return (
-    <section className="space-y-7">
+
+    <section className="mx-auto max-w-xl space-y-6">
       <div className="space-y-2 text-center">
-        <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">← All puzzles</Link>
-        <h1 className="text-2xl font-black sm:text-3xl">Puzzle #{puzzle.id}</h1>
-        <p className="text-sm text-muted-foreground">Guess the five-letter word in six attempts.</p>
+        <Link href="/" className="text-muted-foreground text-sm underline">
+          ← All puzzles
+        </Link>
+        <h1 className="text-3xl font-black">Puzzle #{puzzle.id}</h1>
+        <p className="text-muted-foreground text-sm capitalize">
+          Difficulty: {puzzle.difficulty}
+        </p>
+        {puzzle.hint && <p className="text-sm">Hint: {puzzle.hint}</p>}
+        <form action={startGame}>
+          <input type="hidden" name="puzzleId" value={puzzle.id} />
+          <Button type="submit">Play</Button>
+        </form>
       </div>
-      <WordGame key={puzzle.id} puzzleId={puzzle.id} nextPuzzleId={nextPuzzleId} />
+      <div className="space-y-3">
+        <h2 className="text-xl font-bold">Top 10 winners</h2>
+        {leaderboard.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="p-2">Nickname</th>
+                  <th className="p-2">Attempts</th>
+                  <th className="p-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((row, i) => (
+                  <tr
+                    key={`${row.nickname}-${row.createdAt.toISOString()}-${i}`}
+                    className="border-b"
+                  >
+                    <td className="p-2">{row.nickname}</td>
+                    <td className="p-2">{row.attempts}</td>
+                    <td className="p-2">
+                      {row.createdAt.toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            No winning scores yet.
+          </p>
+        )}
+      </div>
     </section>
   );
 }

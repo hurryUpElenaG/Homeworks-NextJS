@@ -30,8 +30,19 @@
   --color-ring: var(--ring);
 }
 
-* { box-sizing: border-box; }
-html { min-height: 100%; }
-body { min-height: 100vh; }
-button, input { font: inherit; }
-::selection { background: #d9e8df; }
+* {
+  box-sizing: border-box;
+}
+html {
+  min-height: 100%;
+}
+body {
+  min-height: 100vh;
+}
+button,
+input {
+  font: inherit;
+}
+::selection {
+  background: #d9e8df;
+}
