@@ -1,0 +1,11 @@
+.next
+out
+build
+node_modules
+package-lock.json
+drizzle
+next-env.d.ts
+
+
+
+
