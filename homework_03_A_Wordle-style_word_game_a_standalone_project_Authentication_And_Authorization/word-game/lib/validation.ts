@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 export const puzzleIdSchema = z
   .string()
   .regex(/^[1-9]\d{0,2}$/)

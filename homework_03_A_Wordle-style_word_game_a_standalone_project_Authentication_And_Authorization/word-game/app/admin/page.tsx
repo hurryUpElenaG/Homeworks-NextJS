@@ -2,19 +2,20 @@ import { togglePublished } from "@/app/actions/admin";
 import { AddPuzzleForm } from "@/components/add-puzzle-form";
 import { ActionSubmit } from "@/components/action-submit";
 import { getAdminPuzzles } from "@/db/queries";
+import { requireAdmin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-    
-    const rows = await getAdminPuzzles();
-    
+  await requireAdmin("/admin");
+  const rows = await getAdminPuzzles();
+
   return (
     <section className="space-y-8">
       <div>
         <h1 className="text-3xl font-black">Admin area</h1>
         <p className="mt-2 text-sm text-amber-700">
-          Temporary coursework area: this page is not protected by login.
+          Manage puzzles and publication status.
         </p>
       </div>
       <AddPuzzleForm />

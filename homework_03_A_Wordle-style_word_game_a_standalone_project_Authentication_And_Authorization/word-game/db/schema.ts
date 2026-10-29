@@ -6,8 +6,10 @@ import {
   uuid,
   varchar,
   uniqueIndex,
+  text,
 } from "drizzle-orm/pg-core";
 import type { LetterResult } from "@/lib/wordle";
+import { user } from "./auth-schema";
 
 export const puzzles = pgTable("puzzles", {
   id: integer("id").primaryKey(),
@@ -27,6 +29,9 @@ export const games = pgTable("games", {
   puzzleId: integer("puzzle_id")
     .notNull()
     .references(() => puzzles.id),
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   status: varchar("status", { length: 10 }).notNull().default("playing"),
   guesses: jsonb("guesses")
     .$type<{ word: string; results: LetterResult[] }[]>()
@@ -45,6 +50,9 @@ export const scores = pgTable(
     gameId: uuid("game_id")
       .notNull()
       .references(() => games.id),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     puzzleId: integer("puzzle_id")
       .notNull()
       .references(() => puzzles.id),

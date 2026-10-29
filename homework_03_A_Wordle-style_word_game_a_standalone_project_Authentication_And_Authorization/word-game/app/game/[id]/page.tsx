@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GuessForm } from "@/components/guess-form";
 import { SaveScoreForm } from "@/components/save-score-form";
@@ -11,8 +11,10 @@ import { games, puzzles } from "@/db/schema";
 import { getNextPuzzleId } from "@/db/queries";
 import { gameIdSchema } from "@/lib/validation";
 import type { LetterResult } from "@/lib/wordle";
+import { requireUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
 const tileStyles: Record<LetterResult, string> = {
   correct: "border-green-700 bg-green-600 text-white",
   present: "border-yellow-500 bg-yellow-300 text-slate-950",
@@ -22,12 +24,18 @@ const tileStyles: Record<LetterResult, string> = {
 export default async function GamePage({params}: {params: Promise<{ id: string }>}) {
 
   const { id } = await params;
+  const currentUser = await requireUser(`/game/${id}`);
 
   if (!gameIdSchema.safeParse(id).success) notFound();
 
   const db = getDb();
 
-  const [game] = await db.select().from(games).where(eq(games.id, id)).limit(1);
+  const [game] = await db
+    .select()
+    .from(games)
+    .where(and(eq(games.id, id), eq(games.ownerId, currentUser.id)))
+    .limit(1);
+    
   if (!game) notFound();
 
   const [puzzle] = await db
@@ -39,7 +47,7 @@ export default async function GamePage({params}: {params: Promise<{ id: string }
   if (!puzzle) notFound();
 
   const answer = game.status === "lost" ? puzzle.answer : null;
-  
+
   const nextPuzzleId =
     game.status !== "playing" ? await getNextPuzzleId(game.puzzleId) : null;
 

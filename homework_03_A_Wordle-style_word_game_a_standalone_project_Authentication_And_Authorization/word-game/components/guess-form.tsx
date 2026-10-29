@@ -12,10 +12,12 @@ export function GuessForm({
   disabled: boolean;
 }) {
   const action = submitGuess.bind(null, gameId);
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(action,{});
-    
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+    action,
+    {},
+  );
+
   return (
-    
     <form action={formAction} className="space-y-3">
       <label htmlFor="guess" className="block text-sm font-semibold">
         Your five-letter guess

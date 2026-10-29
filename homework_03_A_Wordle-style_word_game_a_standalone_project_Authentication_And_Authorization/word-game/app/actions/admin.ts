@@ -1,4 +1,3 @@
-
 "use server";
 
 import { eq, sql } from "drizzle-orm";
@@ -6,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getDb } from "@/db";
+import { requireAdmin } from "@/lib/session";
 import { puzzles } from "@/db/schema";
 import {
   difficultySchema,
@@ -18,6 +18,8 @@ export async function addPuzzle(
   _previous: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  
+  await requireAdmin("/admin");
   const raw = {
     word: String(formData.get("word") ?? ""),
     difficulty: String(formData.get("difficulty") ?? ""),
@@ -31,21 +33,15 @@ export async function addPuzzle(
   const fieldErrors: Record<string, string[]> = {};
 
   if (!word.success) {
-    fieldErrors.word = [
-      word.error.issues[0]?.message ?? "Invalid word.",
-    ];
+    fieldErrors.word = [word.error.issues[0]?.message ?? "Invalid word."];
   }
 
   if (!difficulty.success) {
-    fieldErrors.difficulty = [
-      "Choose easy, medium, or hard.",
-    ];
+    fieldErrors.difficulty = ["Choose easy, medium, or hard."];
   }
 
   if (!hint.success) {
-    fieldErrors.hint = [
-      hint.error.issues[0]?.message ?? "Invalid hint.",
-    ];
+    fieldErrors.hint = [hint.error.issues[0]?.message ?? "Invalid hint."];
   }
 
   // Return validation errors before accessing parsed data.
@@ -96,8 +92,6 @@ export async function addPuzzle(
       };
     }
 
-    console.error("Failed to add puzzle:", error);
-
     return {
       error: "We couldn't add the puzzle. Please try again.",
       values: raw,
@@ -110,9 +104,8 @@ export async function addPuzzle(
   redirect("/admin");
 }
 
-export async function togglePublished(
-  formData: FormData,
-): Promise<void> {
+export async function togglePublished(formData: FormData): Promise<void> {
+  await requireAdmin("/admin");
   const id = Number(formData.get("puzzleId"));
 
   if (!Number.isSafeInteger(id) || id < 1) {
@@ -140,9 +133,7 @@ export async function togglePublished(
   redirect("/admin");
 }
 
-function isPostgresUniqueViolation(
-  error: unknown,
-): boolean {
+function isPostgresUniqueViolation(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&

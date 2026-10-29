@@ -2,6 +2,8 @@ import "server-only";
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { games, puzzles, scores } from "@/db/schema";
+import { user } from "@/db/auth-schema";
+import { requireAdmin, requireUser } from "@/lib/session";
 
 export async function getPuzzleNumbers() {
   return getDb()
@@ -34,23 +36,15 @@ export async function getNextPuzzleId(id: number) {
   return next?.id ?? null;
 }
 
-export async function getGame(id: string) {
-  const [game] = await getDb()
-    .select()
-    .from(games)
-    .where(eq(games.id, id))
-    .limit(1);
-  return game ?? null;
-}
-
 export async function getPuzzleLeaderboard(puzzleId: number) {
   return getDb()
     .select({
-      nickname: scores.nickname,
+      nickname: user.name,
       attempts: scores.attempts,
       createdAt: scores.createdAt,
     })
     .from(scores)
+    .innerJoin(user, eq(scores.ownerId, user.id))
     .where(eq(scores.puzzleId, puzzleId))
     .orderBy(asc(scores.attempts), asc(scores.createdAt))
     .limit(10);
@@ -58,18 +52,16 @@ export async function getPuzzleLeaderboard(puzzleId: number) {
 
 export async function getHallOfFame() {
   return getDb()
-    .select({
-      nickname: scores.nickname,
-      wins: count(scores.id),
-      lastWin: sql<Date>`max(${scores.createdAt})`,
-    })
+    .select({ nickname: user.name, wins: count(scores.id) })
     .from(scores)
-    .groupBy(scores.nickname)
+    .innerJoin(user, eq(scores.ownerId, user.id))
+    .groupBy(user.id, user.name)
     .orderBy(desc(count(scores.id)), asc(sql`min(${scores.createdAt})`))
     .limit(10);
 }
 
 export async function getAdminPuzzles() {
+  await requireAdmin("/admin");
   return getDb()
     .select({
       id: puzzles.id,
@@ -84,4 +76,45 @@ export async function getAdminPuzzles() {
     .leftJoin(games, eq(games.puzzleId, puzzles.id))
     .groupBy(puzzles.id)
     .orderBy(asc(puzzles.id));
+}
+
+export async function getMyGames() {
+  const current = await requireUser("/my-games");
+  return getDb()
+    .select({
+      id: games.id,
+      puzzleId: games.puzzleId,
+      status: games.status,
+      attempts: sql<number>`jsonb_array_length(${games.guesses})`,
+      createdAt: games.createdAt,
+    })
+    .from(games)
+    .where(eq(games.ownerId, current.id))
+    .orderBy(desc(games.createdAt));
+}
+
+export async function getMyGameStats() {
+  const current = await requireUser("/my-games");
+  const [stats] = await getDb()
+    .select({
+      played: count(games.id),
+      won: sql<number>`count(*) filter (where ${games.status} = 'won')`,
+    })
+    .from(games)
+    .where(eq(games.ownerId, current.id));
+  return stats ?? { played: 0, won: 0 };
+}
+
+export async function getUsers() {
+  await requireAdmin("/users");
+  return getDb()
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    })
+    .from(user)
+    .orderBy(asc(user.email));
 }

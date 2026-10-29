@@ -35,7 +35,7 @@ export default async function HallOfFamePage() {
           </tbody>
         </table>
       ) : (
-        <p>No winners yet.</p>
+      <p>No winners yet.</p>
       )}
     </section>
   );
