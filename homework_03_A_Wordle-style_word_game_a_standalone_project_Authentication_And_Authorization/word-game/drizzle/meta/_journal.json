@@ -10,13 +10,6 @@
       "breakpoints": true
     },
     {
-      "idx": 1,
-      "version": "7",
-      "when": 1792096874621,
-      "tag": "0001_server_games",
-      "breakpoints": true
-    },
-    {
       "idx": 2,
       "version": "7",
       "when": 1793114977371,

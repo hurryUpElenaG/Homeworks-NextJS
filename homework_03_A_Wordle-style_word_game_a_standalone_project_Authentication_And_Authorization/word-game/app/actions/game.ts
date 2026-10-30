@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { games, puzzles, scores } from "@/db/schema";
 import { gameIdSchema, guessSchema } from "@/lib/validation";

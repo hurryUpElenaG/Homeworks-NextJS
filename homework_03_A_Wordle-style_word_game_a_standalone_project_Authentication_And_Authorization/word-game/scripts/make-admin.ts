@@ -15,6 +15,8 @@ if (!email)
     "Set ADMIN_EMAIL to the email of an account that has already signed up.",
   );
 
+const adminEmail = email;
+
 async function main() {
   const pool = new Pool({ connectionString });
   const db = drizzle({ client: pool });
@@ -23,7 +25,7 @@ async function main() {
     const [account] = await db
       .select({ id: user.id, email: user.email })
       .from(user)
-      .where(eq(user.email, email))
+      .where(eq(user.email, adminEmail))
       .limit(1);
 
     if (!account)

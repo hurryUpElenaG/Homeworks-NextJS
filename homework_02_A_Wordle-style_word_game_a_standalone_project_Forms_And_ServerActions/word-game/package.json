@@ -13,6 +13,7 @@
     "check": "npm run lint && npm run format:check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
     "db:seed": "tsx db/seed.ts",
     "test:wordle": "tsx scripts/test-wordle.ts"
   },

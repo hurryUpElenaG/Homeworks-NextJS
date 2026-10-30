@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1792096874620,
-      "tag": "0000_abnormal_surge",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1792096874621,
-      "tag": "0001_server_games",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1793114977371,
-      "tag": "0002_great_betty_ross",
+      "when": 1793320985547,
+      "tag": "0000_exotic_leech",
       "breakpoints": true
     }
   ]
