@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function EventsError({
@@ -9,6 +10,12 @@ export default function EventsError({
   error: Error & { digest?: string };
   retry: () => void;
 }) {
+
+  useEffect(() => {
+    // Log the technical error for development/monitoring.
+    console.error(error);
+  }, [error]);
+
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
       <h1 className="text-2xl font-bold">Something went wrong</h1>
