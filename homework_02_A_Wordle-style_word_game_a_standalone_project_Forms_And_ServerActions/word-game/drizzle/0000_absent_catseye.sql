@@ -1,18 +1,20 @@
+CREATE TYPE "public"."game_status" AS ENUM('playing', 'won', 'lost');--> statement-breakpoint
+CREATE TYPE "public"."puzzle_difficulty" AS ENUM('easy', 'medium', 'hard');--> statement-breakpoint
 CREATE TABLE "games" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"puzzle_id" integer NOT NULL,
-	"status" varchar(10) DEFAULT 'playing' NOT NULL,
+	"status" "game_status" DEFAULT 'playing' NOT NULL,
 	"guesses" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"finished_at" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "puzzles" (
-	"id" integer PRIMARY KEY NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "puzzles_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"answer" varchar(5) NOT NULL,
-	"difficulty" varchar(10) DEFAULT 'medium' NOT NULL,
+	"difficulty" "puzzle_difficulty" DEFAULT 'medium' NOT NULL,
 	"hint" varchar(140),
-	"published" integer DEFAULT 1 NOT NULL,
+	"published" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "puzzles_answer_unique" UNIQUE("answer")
 );

@@ -7,7 +7,7 @@ export async function getPuzzleNumbers() {
   return getDb()
     .select({ id: puzzles.id, difficulty: puzzles.difficulty })
     .from(puzzles)
-    .where(eq(puzzles.published, 1))
+    .where(eq(puzzles.published, true))
     .orderBy(asc(puzzles.id));
 }
 
@@ -19,7 +19,7 @@ export async function getPublishedPuzzle(id: number) {
       hint: puzzles.hint,
     })
     .from(puzzles)
-    .where(and(eq(puzzles.id, id), eq(puzzles.published, 1)))
+    .where(and(eq(puzzles.id, id), eq(puzzles.published, true)))
     .limit(1);
   return puzzle ?? null;
 }
@@ -28,7 +28,7 @@ export async function getNextPuzzleId(id: number) {
   const [next] = await getDb()
     .select({ id: puzzles.id })
     .from(puzzles)
-    .where(and(sql`${puzzles.id} > ${id}`, eq(puzzles.published, 1)))
+    .where(and(sql`${puzzles.id} > ${id}`, eq(puzzles.published, true)))
     .orderBy(asc(puzzles.id))
     .limit(1);
   return next?.id ?? null;

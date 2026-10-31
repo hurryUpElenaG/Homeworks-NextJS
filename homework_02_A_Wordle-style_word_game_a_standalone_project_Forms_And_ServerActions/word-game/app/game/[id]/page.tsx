@@ -19,8 +19,11 @@ const tileStyles: Record<LetterResult, string> = {
   absent: "border-slate-500 bg-slate-500 text-white",
 };
 
-export default async function GamePage({params}: {params: Promise<{ id: string }>}) {
-
+export default async function GamePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
 
   if (!gameIdSchema.safeParse(id).success) notFound();
@@ -39,7 +42,7 @@ export default async function GamePage({params}: {params: Promise<{ id: string }
   if (!puzzle) notFound();
 
   const answer = game.status === "lost" ? puzzle.answer : null;
-  
+
   const nextPuzzleId =
     game.status !== "playing" ? await getNextPuzzleId(game.puzzleId) : null;
 
@@ -92,11 +95,7 @@ export default async function GamePage({params}: {params: Promise<{ id: string }
         Attempts used: {game.guesses.length} / 6
       </p>
       {game.status === "playing" ? (
-        <GuessForm
-          key={game.guesses.length}
-          gameId={game.id}
-          disabled={game.status !== "playing"}
-        />
+        <GuessForm gameId={game.id} />
       ) : (
         <Card>
           <CardHeader>

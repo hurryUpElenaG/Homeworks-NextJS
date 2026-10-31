@@ -1,4 +1,3 @@
-
 "use server";
 
 import { eq, sql } from "drizzle-orm";
@@ -31,21 +30,15 @@ export async function addPuzzle(
   const fieldErrors: Record<string, string[]> = {};
 
   if (!word.success) {
-    fieldErrors.word = [
-      word.error.issues[0]?.message ?? "Invalid word.",
-    ];
+    fieldErrors.word = [word.error.issues[0]?.message ?? "Invalid word."];
   }
 
   if (!difficulty.success) {
-    fieldErrors.difficulty = [
-      "Choose easy, medium, or hard.",
-    ];
+    fieldErrors.difficulty = ["Choose easy, medium, or hard."];
   }
 
   if (!hint.success) {
-    fieldErrors.hint = [
-      hint.error.issues[0]?.message ?? "Invalid hint.",
-    ];
+    fieldErrors.hint = [hint.error.issues[0]?.message ?? "Invalid hint."];
   }
 
   // Return validation errors before accessing parsed data.
@@ -72,19 +65,11 @@ export async function addPuzzle(
       };
     }
 
-    // The current schema requires an explicit integer ID.
-    const [next] = await db
-      .select({
-        id: sql<number>`coalesce(max(${puzzles.id}), 0) + 1`,
-      })
-      .from(puzzles);
-
     await db.insert(puzzles).values({
-      id: next.id,
       answer: word.data,
       difficulty: difficulty.data,
       hint: hint.data || null,
-      published: formData.get("published") === "on" ? 1 : 0,
+      published: formData.get("published") === "on",
     });
   } catch (error: unknown) {
     if (isPostgresUniqueViolation(error)) {
@@ -96,12 +81,7 @@ export async function addPuzzle(
       };
     }
 
-    console.error("Failed to add puzzle:", error);
-
-    return {
-      error: "We couldn't add the puzzle. Please try again.",
-      values: raw,
-    };
+    throw error
   }
 
   revalidatePath("/");
@@ -110,28 +90,25 @@ export async function addPuzzle(
   redirect("/admin");
 }
 
-export async function togglePublished(
-  formData: FormData,
-): Promise<void> {
+export async function togglePublished(formData: FormData) {
   const id = Number(formData.get("puzzleId"));
 
   if (!Number.isSafeInteger(id) || id < 1) {
     redirect("/admin");
   }
 
-  const db = getDb();
+  try {
+    const db = getDb();
 
-  await db
-    .update(puzzles)
-    .set({
-      published: sql`
-        case
-          when ${puzzles.published} = 1 then 0
-          else 1
-        end
-      `,
-    })
-    .where(eq(puzzles.id, id));
+    await db
+      .update(puzzles)
+      .set({
+        published: sql`NOT ${puzzles.published}`,
+      })
+      .where(eq(puzzles.id, id));
+  } catch (error) {
+    throw error;
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");
@@ -140,9 +117,7 @@ export async function togglePublished(
   redirect("/admin");
 }
 
-function isPostgresUniqueViolation(
-  error: unknown,
-): boolean {
+function isPostgresUniqueViolation(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&

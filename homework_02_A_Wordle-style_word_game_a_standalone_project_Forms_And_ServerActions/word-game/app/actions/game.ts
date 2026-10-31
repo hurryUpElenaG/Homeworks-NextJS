@@ -18,23 +18,40 @@ export type ActionState = {
 export async function startGame(formData: FormData) {
   const id = Number(formData.get("puzzleId"));
 
-  if (!Number.isSafeInteger(id) || id < 1) redirect("/");
-  
-  const db = getDb();
+  if (!Number.isSafeInteger(id) || id < 1) {
+    redirect("/");
+  }
 
-  const [puzzle] = await db
-    .select({ id: puzzles.id })
-    .from(puzzles)
-    .where(and(eq(puzzles.id, id), eq(puzzles.published, 1)))
-    .limit(1);
+  let gameId: string | undefined;
 
-  if (!puzzle) redirect("/");
+  try {
+    const db = getDb();
 
-  const [game] = await db
-    .insert(games)
-    .values({ puzzleId: id })
-    .returning({ id: games.id });
-  redirect(`/game/${game.id}`);
+    const [puzzle] = await db
+      .select({ id: puzzles.id })
+      .from(puzzles)
+      .where(and(eq(puzzles.id, id), eq(puzzles.published, true)))
+      .limit(1);
+
+    if (!puzzle) {
+      redirect("/");
+    }
+
+    const [game] = await db
+      .insert(games)
+      .values({ puzzleId: id })
+      .returning({ id: games.id });
+
+    gameId = game.id;
+  } catch (error) {
+    throw error;
+  }
+
+  if (!gameId) {
+    redirect("/");
+  }
+
+  redirect(`/game/${gameId}`);
 }
 
 export async function submitGuess(

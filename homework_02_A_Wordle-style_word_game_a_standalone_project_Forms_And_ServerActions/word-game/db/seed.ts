@@ -49,8 +49,13 @@ async function seed() {
   try {
     await db
       .insert(puzzles)
-      .values(words.map((answer, index) => ({ id: index + 1, answer })))
-      .onConflictDoNothing({ target: puzzles.id });
+      .values(
+        words.map((answer) => ({
+          answer,
+          published: true,
+        })),
+      )
+      .onConflictDoNothing({ target: puzzles.answer });
     process.stdout.write(
       `Seed complete: checked ${words.length} puzzle records.\n`,
     );

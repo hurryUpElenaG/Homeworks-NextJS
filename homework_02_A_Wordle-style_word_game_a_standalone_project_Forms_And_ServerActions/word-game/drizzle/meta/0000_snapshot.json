@@ -1,5 +1,5 @@
 {
-  "id": "7560007e-8a3b-4af5-a22e-424ba0a92312",
+  "id": "4096a0e6-7209-427c-86ab-c717ac24deb3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -23,7 +23,8 @@
         },
         "status": {
           "name": "status",
-          "type": "varchar(10)",
+          "type": "game_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'playing'"
@@ -79,7 +80,18 @@
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "puzzles_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "answer": {
           "name": "answer",
@@ -89,7 +101,8 @@
         },
         "difficulty": {
           "name": "difficulty",
-          "type": "varchar(10)",
+          "type": "puzzle_difficulty",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'medium'"
@@ -102,10 +115,10 @@
         },
         "published": {
           "name": "published",
-          "type": "integer",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": 1
+          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -226,7 +239,26 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.game_status": {
+      "name": "game_status",
+      "schema": "public",
+      "values": [
+        "playing",
+        "won",
+        "lost"
+      ]
+    },
+    "public.puzzle_difficulty": {
+      "name": "puzzle_difficulty",
+      "schema": "public",
+      "values": [
+        "easy",
+        "medium",
+        "hard"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},
