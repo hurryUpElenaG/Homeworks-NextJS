@@ -21,8 +21,11 @@ const tileStyles: Record<LetterResult, string> = {
   absent: "border-slate-500 bg-slate-500 text-white",
 };
 
-export default async function GamePage({params}: {params: Promise<{ id: string }>}) {
-
+export default async function GamePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const currentUser = await requireUser(`/game/${id}`);
 
@@ -35,7 +38,7 @@ export default async function GamePage({params}: {params: Promise<{ id: string }
     .from(games)
     .where(and(eq(games.id, id), eq(games.ownerId, currentUser.id)))
     .limit(1);
-    
+
   if (!game) notFound();
 
   const [puzzle] = await db
@@ -100,11 +103,7 @@ export default async function GamePage({params}: {params: Promise<{ id: string }
         Attempts used: {game.guesses.length} / 6
       </p>
       {game.status === "playing" ? (
-        <GuessForm
-          key={game.guesses.length}
-          gameId={game.id}
-          disabled={game.status !== "playing"}
-        />
+        <GuessForm gameId={game.id} />
       ) : (
         <Card>
           <CardHeader>

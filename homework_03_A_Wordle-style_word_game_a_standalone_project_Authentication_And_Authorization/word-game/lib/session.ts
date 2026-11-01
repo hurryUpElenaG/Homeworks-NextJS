@@ -22,6 +22,3 @@ export async function requireAdmin(returnTo = "/admin") {
   return user;
 }
 
-export async function requirePlayer(returnTo: string) {
-  return requireUser(returnTo);
-}

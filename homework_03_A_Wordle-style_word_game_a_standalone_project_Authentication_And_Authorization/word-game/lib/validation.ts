@@ -12,16 +12,6 @@ export const guessSchema = z
   .regex(/^[a-zA-Z]{5}$/, "Enter exactly five letters (A–Z).")
   .transform((v) => v.toLowerCase());
 
-export const nicknameSchema = z
-  .string()
-  .trim()
-  .min(2, "Use at least 2 characters.")
-  .max(20, "Use no more than 20 characters.")
-  .regex(
-    /^[a-zA-Z0-9 _-]+$/,
-    "Use only letters, numbers, spaces, hyphens, and underscores.",
-  );
-
 export const puzzleWordSchema = z
   .string()
   .trim()

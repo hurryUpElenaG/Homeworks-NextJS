@@ -16,7 +16,7 @@ GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 ADMIN_EMAIL=
 3. Install packages: `npm install`
-4. Apply both migrations: `npm run db:migrate`. The second migration adds game history, score saving, puzzle metadata and the database uniqueness rule.
+4. Apply both migrations: `npm run db:migrate`. and `npx drizzle-kit push`
 5. Seed the original puzzles: `npm run db:seed`.
 6. Start Next.js: `npm run dev`.
 7. Open <http://localhost:3000>. The admin area is <http://localhost:3000/admin>; it is intentionally **not protected by authentication** for this homework and must not be deployed publicly as-is.

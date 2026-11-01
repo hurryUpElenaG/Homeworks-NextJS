@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -18,7 +18,6 @@ export async function addPuzzle(
   _previous: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  
   await requireAdmin("/admin");
   const raw = {
     word: String(formData.get("word") ?? ""),
@@ -68,19 +67,11 @@ export async function addPuzzle(
       };
     }
 
-    // The current schema requires an explicit integer ID.
-    const [next] = await db
-      .select({
-        id: sql<number>`coalesce(max(${puzzles.id}), 0) + 1`,
-      })
-      .from(puzzles);
-
     await db.insert(puzzles).values({
-      id: next.id,
       answer: word.data,
       difficulty: difficulty.data,
       hint: hint.data || null,
-      published: formData.get("published") === "on" ? 1 : 0,
+      published: formData.get("published") === "on",
     });
   } catch (error: unknown) {
     if (isPostgresUniqueViolation(error)) {
@@ -114,22 +105,31 @@ export async function togglePublished(formData: FormData): Promise<void> {
 
   const db = getDb();
 
-  await db
-    .update(puzzles)
-    .set({
-      published: sql`
-        case
-          when ${puzzles.published} = 1 then 0
-          else 1
-        end
-      `,
-    })
-    .where(eq(puzzles.id, id));
+  let found = false;
+
+  try {
+    const [puzzle] = await db
+      .select({ published: puzzles.published })
+      .from(puzzles)
+      .where(eq(puzzles.id, id))
+      .limit(1);
+
+    if (puzzle) {
+      found = true;
+      await db
+        .update(puzzles)
+        .set({ published: !puzzle.published })
+        .where(eq(puzzles.id, id));
+    }
+  } catch {
+    throw new Error("Unable to update the puzzle. Please try again.");
+  }
+
+  if (!found) redirect("/admin");
 
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath(`/puzzle/${id}`);
-
   redirect("/admin");
 }
 

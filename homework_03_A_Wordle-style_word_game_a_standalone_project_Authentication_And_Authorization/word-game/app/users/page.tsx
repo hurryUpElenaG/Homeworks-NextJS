@@ -5,16 +5,23 @@ import { requireAdmin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const current = await requireAdmin("/users");
+  const params = await searchParams;
   const users = await getUsers();
 
   return (
     <section className="space-y-5">
       <h1 className="text-3xl font-black">Users</h1>
-      <p className="text-muted-foreground text-sm">
-        Promote players or demote other admins. You cannot change your own role.
-      </p>
+      {params.error === "last-admin" && (
+        <p role="alert" className="text-sm text-red-600">
+          You cannot remove the last administrator. Promote another user first.
+        </p>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>

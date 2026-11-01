@@ -21,25 +21,27 @@ export async function startGame(formData: FormData) {
 
   if (!Number.isSafeInteger(id) || id < 1) redirect("/");
 
-  const { getCurrentUser } = await import("@/lib/session");
-  const user = await getCurrentUser();
-
-  if (!user)
-    redirect(`/sign-in?next=${encodeURIComponent(`/play?puzzleId=${id}`)}`);
+  // If the user is signed out, return them to this puzzle after sign-in.
+  const user = await requireUser(`/puzzle/${id}`);
 
   const db = getDb();
+
   const [puzzle] = await db
     .select({ id: puzzles.id })
     .from(puzzles)
-    .where(and(eq(puzzles.id, id), eq(puzzles.published, 1)))
+    .where(and(eq(puzzles.id, id), eq(puzzles.published, true)))
     .limit(1);
-  
-  if (!puzzle) redirect("/");
 
+  if (!puzzle) {
+    redirect("/");
+  }
+
+  // A game is created only after the Play form is submitted.
   const [game] = await db
     .insert(games)
-    .values({ puzzleId: id, ownerId: user.id })
+    .values({ puzzleId: puzzle.id, ownerId: user.id })
     .returning({ id: games.id });
+
   redirect(`/game/${game.id}`);
 }
 
@@ -48,22 +50,25 @@ export async function submitGuess(
   _previous: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-
   const user = await requireUser(`/game/${gameId}`);
   const raw = String(formData.get("guess") ?? "");
   const parsedId = gameIdSchema.safeParse(gameId);
   const parsedGuess = guessSchema.safeParse(raw);
 
-  if (!parsedId.success) return { error: "Game not found." };
+  if (!parsedId.success) {
+    return { error: "Game not found." };
+  }
 
-  if (!parsedGuess.success)
+  if (!parsedGuess.success) {
     return {
       fieldErrors: { guess: ["Enter exactly five letters (A–Z)."] },
       values: { guess: raw },
     };
+  }
 
   try {
     const db = getDb();
+
     const result = await db.transaction(async (tx) => {
       const [game] = await tx
         .select()
@@ -72,10 +77,13 @@ export async function submitGuess(
         .for("update")
         .limit(1);
 
-      if (!game) return { error: "Game not found." as const };
+      if (!game) {
+        return { error: "Game not found." as const };
+      }
 
-      if (game.status !== "playing" || game.guesses.length >= 6)
+      if (game.status !== "playing" || game.guesses.length >= 6) {
         return { error: "This game has already finished." as const };
+      }
 
       const [puzzle] = await tx
         .select()
@@ -83,7 +91,9 @@ export async function submitGuess(
         .where(eq(puzzles.id, game.puzzleId))
         .limit(1);
 
-      if (!puzzle) return { error: "Game not found." as const };
+      if (!puzzle) {
+        return { error: "Game not found." as const };
+      }
 
       const word = parsedGuess.data;
       const guesses = [
@@ -109,7 +119,9 @@ export async function submitGuess(
       };
     });
 
-    if ("error" in result) return { error: result.error };
+    if ("error" in result) {
+      return { error: result.error };
+    }
 
     revalidatePath(`/game/${gameId}`);
 
@@ -130,31 +142,37 @@ export async function submitGuess(
 }
 
 export async function saveScore(
-  gameId: string,
-  _previous: ActionState,
-  _formData: FormData,
+  gameId: string
 ): Promise<ActionState> {
-
   const user = await requireUser(`/game/${gameId}`);
   const id = gameIdSchema.safeParse(gameId);
 
-  if (!id.success) return { error: "Game not found." };
+  if (!id.success) {
+    return { error: "Game not found." };
+  }
 
   try {
     const db = getDb();
+
     const [game] = await db
       .select()
       .from(games)
       .where(and(eq(games.id, id.data), eq(games.ownerId, user.id)))
       .limit(1);
 
-    if (!game) return { error: "Game not found." };
+    if (!game) {
+      return { error: "Game not found." };
+    }
 
-    if (game.status === "playing")
+    if (game.status === "playing") {
       return { error: "Finish the game before saving a score." };
+    }
 
-    if (game.status !== "won")
-      return { message: "Only winning games can be saved to the leaderboard." };
+    if (game.status !== "won") {
+      return {
+        message: "Only winning games can be saved to the leaderboard.",
+      };
+    }
 
     const inserted = await db
       .insert(scores)
@@ -168,15 +186,15 @@ export async function saveScore(
       .onConflictDoNothing({ target: scores.gameId })
       .returning({ id: scores.id });
 
-    if (!inserted.length)
+    if (!inserted.length) {
       return { message: "This game's score has already been saved." };
+    }
 
     revalidatePath(`/puzzle/${game.puzzleId}`);
     revalidatePath("/hall-of-fame");
     revalidatePath("/my-games");
 
     return { message: "Your score was saved!" };
-    
   } catch {
     return { error: "We couldn't save your score. Please try again." };
   }

@@ -1,6 +1,8 @@
 import {
+  boolean,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   timestamp,
   uuid,
@@ -11,12 +13,20 @@ import {
 import type { LetterResult } from "@/lib/wordle";
 import { user } from "./auth-schema";
 
+export const gameStatusEnum = pgEnum("game_status", ["playing", "won", "lost"]);
+
+export const puzzleDifficultyEnum = pgEnum("puzzle_difficulty", [
+  "easy",
+  "medium",
+  "hard",
+]);
+
 export const puzzles = pgTable("puzzles", {
-  id: integer("id").primaryKey(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   answer: varchar("answer", { length: 5 }).notNull().unique(),
-  difficulty: varchar("difficulty", { length: 10 }).notNull().default("medium"),
+  difficulty: puzzleDifficultyEnum("difficulty").notNull().default("medium"),
   hint: varchar("hint", { length: 140 }),
-  published: integer("published").notNull().default(1),
+  published: boolean("published").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -32,7 +42,7 @@ export const games = pgTable("games", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  status: varchar("status", { length: 10 }).notNull().default("playing"),
+  status: gameStatusEnum("status").notNull().default("playing"),
   guesses: jsonb("guesses")
     .$type<{ word: string; results: LetterResult[] }[]>()
     .notNull()
@@ -65,5 +75,4 @@ export const scores = pgTable(
   (table) => [uniqueIndex("scores_game_id_unique").on(table.gameId)],
 );
 
-export const PuzzleDifficulty = ["easy", "medium", "hard"] as const;
-export type PuzzleDifficulty = (typeof PuzzleDifficulty)[number];
+export type PuzzleDifficulty = (typeof puzzleDifficultyEnum.enumValues)[number];

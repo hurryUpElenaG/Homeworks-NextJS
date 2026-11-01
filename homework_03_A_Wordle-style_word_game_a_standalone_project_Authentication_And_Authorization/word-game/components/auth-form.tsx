@@ -40,14 +40,13 @@ export function AuthForm({
               password,
               callbackURL: next,
             });
-      if (result.error)
+      if (result.error) {
         setError(
           mode === "sign-in"
             ? "Invalid email or password."
-            : result.error.message ||
-                "We couldn't create your account. Please try again.",
+            : "We couldn't create your account. Please try again.",
         );
-      else {
+      } else {
         router.push(next);
         router.refresh();
       }

@@ -6,12 +6,17 @@ import { ActionSubmit } from "@/components/action-submit";
 import { Input } from "@/components/ui/input";
 
 export function AddPuzzleForm() {
-    
-  const [state, formAction] = useActionState<ActionState, FormData>(addPuzzle,{});
+  const [state, formAction] = useActionState<ActionState, FormData>(
+    addPuzzle,
+    {},
+  );
   const value = (name: string) => state.values?.[name] ?? "";
 
-    return (
-      
+  const hasWordError = Boolean(state.fieldErrors?.word);
+  const hasHintError = Boolean(state.fieldErrors?.hint);
+  const hasDifficultyError = Boolean(state.fieldErrors?.difficulty);
+
+  return (
     <form action={formAction} className="space-y-4 rounded-xl border p-5">
       <h2 className="text-lg font-bold">Add puzzle</h2>
       <div>
@@ -19,68 +24,58 @@ export function AddPuzzleForm() {
           Word
         </label>
         <Input
-          key={value("word")}
           id="word"
           name="word"
           defaultValue={value("word")}
           maxLength={5}
-          aria-describedby="word-error"
-          aria-invalid={!!state.fieldErrors?.word}
+          aria-invalid={hasWordError}
+          aria-describedby={hasWordError ? "word-error" : undefined}
         />
-        {state.fieldErrors?.word?.map((e) => (
-          <p
-            id="word-error"
-            key={e}
-            role="alert"
-            className="text-sm text-red-600"
-          >
-            {e}
+        {hasWordError && (
+          <p id="word-error" role="alert" className="text-sm text-red-600">
+            {state.fieldErrors?.word?.join(" ")}
           </p>
-        ))}
+        )}
       </div>
       <div>
         <label htmlFor="difficulty" className="mb-1 block text-sm font-medium">
           Difficulty
         </label>
         <select
-          key={value("difficulty") || "medium"}
           id="difficulty"
           name="difficulty"
-          defaultValue={value("difficulty") || "medium"}
+          aria-invalid={hasDifficultyError}
+          aria-describedby={hasDifficultyError ? "difficulty-error" : undefined}
           className="bg-background h-10 w-full rounded-md border px-3"
         >
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
         </select>
-        {state.fieldErrors?.difficulty?.map((e) => (
-          <p key={e} role="alert" className="text-sm text-red-600">
-            {e}
+
+        {hasDifficultyError && (
+          <p id="difficulty-error" role="alert">
+            {state.fieldErrors?.difficulty?.join(" ")}
           </p>
-        ))}
+        )}
       </div>
       <div>
         <label htmlFor="hint" className="mb-1 block text-sm font-medium">
           Hint (optional)
         </label>
         <Input
-          key={value("hint")}
           id="hint"
           name="hint"
           defaultValue={value("hint")}
           maxLength={140}
-          aria-describedby="hint-error"
+          aria-invalid={hasHintError}
+          aria-describedby={hasHintError ? "hint-error" : undefined}
         />
-        {state.fieldErrors?.hint?.map((e) => (
-          <p
-            id="hint-error"
-            key={e}
-            role="alert"
-            className="text-sm text-red-600"
-          >
-            {e}
+        {hasHintError && (
+          <p id="hint-error" role="alert" className="text-sm text-red-600">
+            {state.fieldErrors?.hint?.join(" ")}
           </p>
-        ))}
+        )}
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="published" defaultChecked /> Publish now
